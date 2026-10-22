@@ -1,0 +1,237 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load humanize %}
+
+{% block title %}Dashboard - FreshMart Admin{% endblock %}
+{% block page_title %}Tổng Quan Cửa Hàng Rau Củ Quả{% endblock %}
+{% block page_breadcrumb %}Admin Panel &rsaquo; Dashboard{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'admin_product_create' %}" class="btn-admin-primary d-none d-sm-flex align-items-center gap-2">
+    <i class="bi bi-plus-lg"></i> Thêm nông sản
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== STAT CARDS ===== -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3 animate-in delay-1">
+        <div class="stat-card card-purple">
+            <div class="stat-icon"><i class="bi bi-currency-dollar"></i></div>
+            <div class="stat-label">Doanh thu hôm nay</div>
+            <div class="stat-value">{{ today_revenue|intcomma }}<span style="font-size:1rem;opacity:.7;"> đ</span></div>
+            <div class="stat-sub"><i class="bi bi-arrow-up-right me-1"></i>Tổng đơn hoàn thành</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3 animate-in delay-2">
+        <div class="stat-card card-green">
+            <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="stat-label">Lãi gộp hôm nay</div>
+            <div class="stat-value">{{ today_profit|intcomma }}<span style="font-size:1rem;opacity:.7;"> đ</span></div>
+            <div class="stat-sub"><i class="bi bi-check-circle me-1"></i>Sau khi trừ giá vốn</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3 animate-in delay-3">
+        <div class="stat-card card-blue">
+            <div class="stat-icon"><i class="bi bi-safe2-fill"></i></div>
+            <div class="stat-label">Giá trị vốn trong kho</div>
+            <div class="stat-value">{{ total_inventory_cost|intcomma }}<span style="font-size:1rem;opacity:.7;"> đ</span></div>
+            <div class="stat-sub"><i class="bi bi-tag me-1"></i>Giá bán ước: {{ total_inventory_retail|intcomma }} đ</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3 animate-in delay-4">
+        <div class="stat-card card-orange">
+            <div class="stat-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="stat-label">Tình trạng tồn kho</div>
+            <div class="stat-value">{{ total_sku }} <span style="font-size:1rem;opacity:.7;">SKU</span></div>
+            <div class="stat-sub">
+                <i class="bi bi-x-circle me-1"></i>Hết hàng: {{ out_of_stock_count }}
+                &nbsp;|&nbsp;<i class="bi bi-exclamation-circle me-1"></i>Sắp hết: {{ low_stock_count }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== QUICK ACTIONS ===== -->
+<div class="row g-3 mb-4 animate-in delay-2">
+    <div class="col-12">
+        <div class="panel-card p-3">
+            <div class="row g-2">
+                <div class="col-6 col-md-3">
+                    <a href="{% url 'admin_product_list' %}" class="quick-tile">
+                        <div class="tile-icon" style="background:#ede9fe;">
+                            <i class="bi bi-basket2" style="color:#6d28d9;"></i>
+                        </div>
+                        <div>
+                            <div class="tile-title">Kho Rau Củ Quả</div>
+                            <div class="tile-sub">Quản lý nông sản & SKU</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{% url 'admin_receipt_create' %}" class="quick-tile">
+                        <div class="tile-icon" style="background:#dbeafe;">
+                            <i class="bi bi-box-arrow-in-down" style="color:#1d4ed8;"></i>
+                        </div>
+                        <div>
+                            <div class="tile-title">Nhập Kho Hàng</div>
+                            <div class="tile-sub">Tạo phiếu nhập mới</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{% url 'admin_order_list' %}?status=PENDING" class="quick-tile">
+                        <div class="tile-icon" style="background:#fef9c3;">
+                            <i class="bi bi-bell-fill" style="color:#ca8a04;"></i>
+                        </div>
+                        <div>
+                            <div class="tile-title">Đơn Chờ Duyệt</div>
+                            <div class="tile-sub">{{ pending_orders_count }} đơn cần xử lý</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{% url 'admin_user_management' %}" class="quick-tile">
+                        <div class="tile-icon" style="background:#fce7f3;">
+                            <i class="bi bi-people-fill" style="color:#be185d;"></i>
+                        </div>
+                        <div>
+                            <div class="tile-title">Người Dùng</div>
+                            <div class="tile-sub">Phân quyền tài khoản</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MAIN TWO-COLUMN SECTION ===== -->
+<div class="row g-3">
+    <!-- Left: Recent Orders -->
+    <div class="col-12 col-xl-8 animate-in delay-3">
+        <div class="panel-card">
+            <div class="card-header-custom">
+                <h6>
+                    <span class="icon-header" style="background:#ede9fe;color:#6d28d9;">
+                        <i class="bi bi-receipt-cutoff"></i>
+                    </span>
+                    Đơn Hàng Gần Đây
+                </h6>
+                <a href="{% url 'admin_order_list' %}" class="btn-admin-outline" style="font-size:0.78rem;padding:5px 12px;">
+                    Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="admin-table w-100">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th class="text-end">Lãi gộp</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th>Thời gian</th>
+                            <th class="text-center">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>
+                                <code style="font-size:.8rem;color:#6366f1;background:#ede9fe;padding:2px 7px;border-radius:6px;">
+                                    {{ order.order_code }}
+                                </code>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark" style="font-size:.875rem;">{{ order.customer_name }}</div>
+                                <div class="text-muted" style="font-size:.73rem;">{{ order.customer_phone|default:"Khách lẻ" }}</div>
+                            </td>
+                            <td class="text-end fw-bold" style="color:#0f172a;">{{ order.total_amount|intcomma }} đ</td>
+                            <td class="text-end fw-semibold" style="color:#10b981;">+{{ order.profit|intcomma }} đ</td>
+                            <td class="text-center">
+                                {% if order.status == 'PENDING' %}
+                                    <span class="status-pill status-pending">Chờ xác nhận</span>
+                                {% elif order.status == 'CONFIRMED' %}
+                                    <span class="status-pill status-confirmed">Đã duyệt</span>
+                                {% elif order.status == 'SHIPPING' %}
+                                    <span class="status-pill status-shipping">Đang giao</span>
+                                {% elif order.status == 'COMPLETED' %}
+                                    <span class="status-pill status-completed">Hoàn thành</span>
+                                {% else %}
+                                    <span class="status-pill status-cancelled">Đã hủy</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted" style="font-size:.78rem;">{{ order.created_at|date:"H:i d/m" }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'admin_order_detail' order.id %}"
+                                   class="btn btn-sm" style="background:#ede9fe;color:#6d28d9;border-radius:8px;padding:3px 9px;">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>
+                                Chưa có đơn hàng nào trong hệ thống.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Low Stock Alert -->
+    <div class="col-12 col-xl-4 animate-in delay-4">
+        <div class="panel-card h-100 d-flex flex-column">
+            <div class="card-header-custom">
+                <h6>
+                    <span class="icon-header" style="background:#fee2e2;color:#dc2626;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </span>
+                    Cảnh Báo Tồn Kho
+                </h6>
+                <span class="badge" style="background:#fee2e2;color:#dc2626;border-radius:20px;font-size:.72rem;">
+                    {{ low_stock_count }} cần nhập
+                </span>
+            </div>
+            <div style="flex:1;">
+                {% for p in low_stock_products %}
+                <div class="alert-item">
+                    <div class="alert-badge {% if p.stock_quantity == 0 %}badge-danger-soft{% else %}badge-warning-soft{% endif %}">
+                        {{ p.stock_quantity }}
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div class="fw-semibold text-truncate" style="font-size:.82rem;color:#0f172a;">{{ p.name }}</div>
+                        <div class="text-muted text-truncate" style="font-size:.72rem;">
+                            <code>{{ p.sku }}</code> &bull; Kệ: {{ p.location|default:"Chưa gán" }}
+                        </div>
+                    </div>
+                    <a href="{% url 'admin_receipt_create' %}" class="btn btn-sm"
+                       style="background:#f1f5f9;color:#475569;border-radius:8px;font-size:.72rem;padding:3px 8px;white-space:nowrap;">
+                        <i class="bi bi-plus-circle me-1"></i>Nhập
+                    </a>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-check-circle-fill fs-2 d-block mb-2 text-success opacity-50"></i>
+                    Tồn kho an toàn, không có nông sản nào dưới ngưỡng cảnh báo.
+                </div>
+                {% endfor %}
+            </div>
+            <div class="p-3 border-top" style="background:#fafafa;">
+                <a href="{% url 'admin_product_list' %}?stock=low" class="btn-admin-outline w-100 text-center d-block" style="font-size:.8rem;padding:7px;">
+                    Xem tất cả nông sản sắp hết &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

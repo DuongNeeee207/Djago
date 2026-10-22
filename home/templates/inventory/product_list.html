@@ -1,0 +1,169 @@
+{% extends 'inventory/base.html' %}
+{% load humanize %}
+
+{% block title %}Danh Mục Linh Kiện Kho{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h4 class="fw-bold mb-1">Kho Linh Kiện Điện Thoại</h4>
+        <p class="text-muted small mb-0">Tra cứu tồn kho, giá vốn bình quân, giá bán lẻ và dòng máy tương thích</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if request.user.profile.role == 'ADMIN' or request.user.is_superuser %}
+        <a href="{% url 'seed_sample_data' %}" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-arrow-repeat"></i> Nạp lại dữ liệu mẫu
+        </a>
+        {% endif %}
+        {% if request.user.profile.role != 'STAFF' %}
+        <a href="{% url 'product_create' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
+            <i class="bi bi-plus-circle-fill"></i> Thêm linh kiện mới
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+
+<!-- Bộ lọc tìm kiếm nâng cao -->
+<div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-3">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Tìm theo SKU, tên linh kiện, dòng máy...">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="category" class="form-select">
+                    <option value="">-- Tất cả loại --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="brand" class="form-select">
+                    <option value="">-- Hãng máy --</option>
+                    {% for b in brands %}
+                    <option value="{{ b.id }}" {% if selected_brand == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="stock" class="form-select">
+                    <option value="">-- Trạng thái tồn --</option>
+                    <option value="available" {% if selected_stock == 'available' %}selected{% endif %}>Đủ hàng</option>
+                    <option value="low" {% if selected_stock == 'low' %}selected{% endif %}>Sắp hết (<= min)</option>
+                    <option value="out" {% if selected_stock == 'out' %}selected{% endif %}>Hết hàng (= 0)</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-secondary w-100">Lọc dữ liệu</button>
+                {% if query or selected_category or selected_brand or selected_stock %}
+                <a href="{% url 'product_list' %}" class="btn btn-outline-secondary" title="Xóa bộ lọc"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bảng dữ liệu linh kiện -->
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 130px;">Mã SKU</th>
+                        <th style="min-width: 220px;">Tên linh kiện</th>
+                        <th>Chất lượng</th>
+                        <th>Dòng máy tương thích</th>
+                        {% if request.user.profile.role != 'STAFF' %}
+                        <th class="text-end">Giá vốn</th>
+                        {% endif %}
+                        <th class="text-end">Giá bán lẻ</th>
+                        <th class="text-center">Tồn kho</th>
+                        <th>Vị trí kệ</th>
+                        {% if request.user.profile.role != 'STAFF' %}
+                        <th class="text-center" style="width: 100px;">Thao tác</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td>
+                            <strong class="text-primary font-monospace">{{ p.sku }}</strong>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ p.name }}</div>
+                            <small class="text-muted"><i class="bi bi-tag"></i> {{ p.category.name }}</small>
+                        </td>
+                        <td>
+                            {% if p.grade == 'ZIN' %}
+                                <span class="badge badge-zin">Zin bóc máy</span>
+                            {% elif p.grade == 'LK1' %}
+                                <span class="badge badge-lk1">Linh kiện 1</span>
+                            {% elif p.grade == 'OEM' %}
+                                <span class="badge badge-oem">OEM</span>
+                            {% else %}
+                                <span class="badge badge-dlc">DLC / Hãng thứ 3</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1" style="max-width: 240px;">
+                                {% for m in p.compatible_models.all %}
+                                    <span class="badge bg-light text-dark border" style="font-size: 11px;">
+                                        {{ m.name }}
+                                    </span>
+                                {% empty %}
+                                    <span class="text-muted small">Dùng chung nhiều máy</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        {% if request.user.profile.role != 'STAFF' %}
+                        <td class="text-end text-muted fw-semibold">
+                            {{ p.cost_price|intcomma }} đ
+                        </td>
+                        {% endif %}
+                        <td class="text-end text-success fw-bold">
+                            {{ p.retail_price|intcomma }} đ
+                        </td>
+                        <td class="text-center">
+                            {% if p.stock_quantity <= 0 %}
+                                <span class="badge bg-danger">Hết hàng (0)</span>
+                            {% elif p.is_low_stock %}
+                                <span class="badge bg-warning text-dark">Sắp hết ({{ p.stock_quantity }})</span>
+                            {% else %}
+                                <span class="badge bg-success">{{ p.stock_quantity }} cái</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-secondary border">
+                                <i class="bi bi-geo-alt"></i> {{ p.location|default:"--" }}
+                            </span>
+                        </td>
+                        {% if request.user.profile.role != 'STAFF' %}
+                        <td class="text-center">
+                            <a href="{% url 'product_edit' p.id %}" class="btn btn-outline-primary btn-sm py-1 px-2" title="Chỉnh sửa linh kiện">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        </td>
+                        {% endif %}
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                            Không tìm thấy linh kiện nào phù hợp với bộ lọc.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

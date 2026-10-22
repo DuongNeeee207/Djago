@@ -1,0 +1,95 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load humanize %}
+
+{% block title %}Kho Rau Củ Quả - Admin Panel{% endblock %}
+{% block page_title %}Kho Rau Củ Quả & Nông Sản{% endblock %}
+{% block page_breadcrumb %}Admin Panel &rsaquo; Kho Rau Củ Quả{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'admin_product_create' %}" class="btn-admin-primary d-flex align-items-center gap-2">
+    <i class="bi bi-plus-lg"></i> Thêm nông sản
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="panel-card animate-in">
+    <div class="card-header-custom">
+        <h6>
+            <span class="icon-header" style="background:#ede9fe;color:#6d28d9;"><i class="bi bi-basket2"></i></span>
+            Danh mục rau củ quả — giá vốn, giá bán lẻ và vị trí kệ/quầy
+        </h6>
+        <a href="{% url 'seed_sample_data' %}" class="btn-admin-outline btn-sm" style="font-size:.78rem;padding:6px 14px;">
+            <i class="bi bi-arrow-repeat me-1"></i>Nạp dữ liệu mẫu rau củ
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="admin-table w-100">
+            <thead>
+                <tr>
+                    <th style="width: 130px;">Mã SKU</th>
+                    <th style="min-width: 200px;">Tên sản phẩm</th>
+                    <th>Danh mục & Tiêu chuẩn</th>
+                    <th>Xuất xứ / Giống loại</th>
+                    <th class="text-end">Giá vốn</th>
+                    <th class="text-end">Giá bán lẻ</th>
+                    <th class="text-center">Tồn kho</th>
+                    <th>Vị trí kệ/quầy</th>
+                    <th class="text-center" style="width: 80px;">Sửa</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr>
+                    <td><code style="font-size:.8rem;background:#f1f5f9;padding:2px 7px;border-radius:6px;color:#16a34a;">{{ p.sku }}</code></td>
+                    <td>
+                        <div class="fw-semibold text-dark" style="font-size:.875rem;">{{ p.name }}</div>
+                    </td>
+                    <td>
+                        <span class="badge" style="background:#f1f5f9;color:#475569;font-size:.73rem;">{{ p.category.name }}</span>
+                        &nbsp;<span class="badge badge-{{ p.grade|lower }}" style="font-size:.73rem;">{{ p.get_grade_display }}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1" style="max-width: 220px;">
+                            {% for m in p.compatible_models.all %}
+                            <span class="badge" style="background:#dcfce7;color:#166534;font-size:.71rem;">{{ m.brand.name }} - {{ m.name }}</span>
+                            {% empty %}
+                            <span class="text-muted small">Nhiều nguồn</span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="text-end fw-semibold" style="color:#64748b;font-size:.85rem;">{{ p.cost_price|intcomma }} đ</td>
+                    <td class="text-end fw-bold" style="color:#16a34a;font-size:.875rem;">{{ p.retail_price|intcomma }} đ</td>
+                    <td class="text-center">
+                        {% if p.stock_quantity <= 0 %}
+                            <span class="status-pill status-cancelled">Hết hàng (0)</span>
+                        {% elif p.is_low_stock %}
+                            <span class="status-pill status-pending">Sắp hết ({{ p.stock_quantity }})</span>
+                        {% else %}
+                            <span class="status-pill status-completed">{{ p.stock_quantity }} phần</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="font-size:.78rem;background:#f8fafc;padding:2px 8px;border-radius:6px;border:1px solid #e2e8f0;color:#64748b;">
+                            <i class="bi bi-geo-alt"></i> {{ p.location|default:"--" }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'admin_product_edit' p.id %}"
+                           class="btn btn-sm" style="background:#ede9fe;color:#6d28d9;border-radius:8px;padding:4px 10px;" title="Sửa">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>
+                        Chưa có sản phẩm nào trong kho rau củ.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

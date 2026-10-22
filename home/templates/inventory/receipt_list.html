@@ -1,0 +1,74 @@
+{% extends 'inventory/base.html' %}
+{% load humanize %}
+
+{% block title %}Lịch Sử Nhập Kho{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Quản Lý Nhập Kho Linh Kiện</h4>
+        <p class="text-muted small mb-0">Theo dõi lịch sử nhập hàng từ các nhà cung cấp, tăng tồn kho và cập nhật giá vốn bình quân</p>
+    </div>
+    <a href="{% url 'receipt_create' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
+        <i class="bi bi-plus-circle-fill"></i> Tạo phiếu nhập kho mới
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã phiếu nhập</th>
+                        <th>Thời gian</th>
+                        <th>Nhà cung cấp</th>
+                        <th>Số lượng mặt hàng</th>
+                        <th class="text-end">Tổng tiền hàng</th>
+                        <th>Người lập phiếu</th>
+                        <th>Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in receipts %}
+                    <tr>
+                        <td>
+                            <strong class="font-monospace text-primary">{{ r.receipt_code }}</strong>
+                        </td>
+                        <td>
+                            <div>{{ r.created_at|date:"d/m/Y" }}</div>
+                            <small class="text-muted">{{ r.created_at|date:"H:i" }}</small>
+                        </td>
+                        <td>
+                            <div class="fw-medium text-dark">{{ r.supplier.name|default:"Nhập lẻ / Tự do" }}</div>
+                            {% if r.supplier.phone %}
+                            <small class="text-muted">{{ r.supplier.phone }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ r.items.count }} linh kiện</span>
+                        </td>
+                        <td class="text-end fw-bold text-dark">
+                            {{ r.total_amount|intcomma }} đ
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ r.created_by.username|default:"Admin" }}</small>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ r.note|default:"--" }}</small>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-truck fs-2 d-block mb-2 text-secondary"></i>
+                            Chưa có phiếu nhập kho nào được tạo.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

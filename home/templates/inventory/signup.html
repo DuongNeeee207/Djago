@@ -1,0 +1,136 @@
+{% extends 'shop/base_shop.html' %}
+
+{% block title %}Đăng Ký Tài Khoản Khách Hàng - FreshMart{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center py-4" style="min-height: 75vh;">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+        
+        <!-- SIGNUP CARD -->
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden anim-in" 
+             style="background: white; border: 1px solid rgba(226,232,240,0.8) !important;">
+            
+            <!-- HEADER -->
+            <div class="p-4 text-center text-white position-relative" 
+                 style="background: var(--brand-gradient);">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2 shadow-sm" 
+                     style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);">
+                    <i class="bi bi-person-plus-fill fs-3 text-white"></i>
+                </div>
+                <h4 class="fw-bold mb-1">ĐĂNG KÝ TÀI KHOẢN</h4>
+                <p class="small text-white-50 mb-0">Tạo tài khoản khách hàng để đặt mua rau củ quả và theo dõi đơn hàng</p>
+            </div>
+            
+            <div class="card-body p-4 p-md-5">
+                <form method="post" action="{% url 'signup' %}">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-bold small text-secondary">
+                                Tên đăng nhập <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3" style="border-color: var(--border-color);">
+                                    <i class="bi bi-person text-muted"></i>
+                                </span>
+                                <input type="text" name="username" class="form-control rounded-end-3 py-2" 
+                                       placeholder="VD: nguyen_a" required autofocus 
+                                       style="border-color: var(--border-color); font-size: 0.9rem;">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-bold small text-secondary">Họ và tên</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3" style="border-color: var(--border-color);">
+                                    <i class="bi bi-card-heading text-muted"></i>
+                                </span>
+                                <input type="text" name="fullname" class="form-control rounded-end-3 py-2" 
+                                       placeholder="VD: Nguyễn Văn A" 
+                                       style="border-color: var(--border-color); font-size: 0.9rem;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary">Số điện thoại liên hệ</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 rounded-start-3" style="border-color: var(--border-color);">
+                                <i class="bi bi-telephone text-muted"></i>
+                            </span>
+                            <input type="text" name="phone" class="form-control rounded-end-3 py-2" 
+                                   placeholder="VD: 0988 123 456" 
+                                   style="border-color: var(--border-color); font-size: 0.9rem;">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary">Địa chỉ nhận hàng mặc định</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 rounded-start-3" style="border-color: var(--border-color);">
+                                <i class="bi bi-geo-alt text-muted"></i>
+                            </span>
+                            <input type="text" name="address" class="form-control rounded-end-3 py-2" 
+                                   placeholder="Số nhà, đường, phường/xã, quận/huyện..." 
+                                   style="border-color: var(--border-color); font-size: 0.9rem;">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-bold small text-secondary">
+                                Mật khẩu <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3" style="border-color: var(--border-color);">
+                                    <i class="bi bi-key text-muted"></i>
+                                </span>
+                                <input type="password" name="password" class="form-control rounded-end-3 py-2" 
+                                       placeholder="Ít nhất 6 ký tự" required minlength="6" 
+                                       style="border-color: var(--border-color); font-size: 0.9rem;">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-bold small text-secondary">
+                                Nhập lại mật khẩu <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3" style="border-color: var(--border-color);">
+                                    <i class="bi bi-check2-circle text-muted"></i>
+                                </span>
+                                <input type="password" name="confirm_password" class="form-control rounded-end-3 py-2" 
+                                       placeholder="Nhập lại mật khẩu" required minlength="6" 
+                                       style="border-color: var(--border-color); font-size: 0.9rem;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LỢI ÍCH -->
+                    <div class="p-3 rounded-3 mb-3 d-flex flex-wrap gap-2 justify-content-around" 
+                         style="background: #f8fafc; border: 1px solid var(--border-color);">
+                        <span class="small text-muted"><i class="bi bi-check-circle-fill text-success me-1"></i> Miễn phí tài khoản</span>
+                        <span class="small text-muted"><i class="bi bi-truck text-primary me-1"></i> Giao COD tận nhà</span>
+                        <span class="small text-muted"><i class="bi bi-shield-check text-info me-1"></i> Bảo mật 100%</span>
+                    </div>
+
+                    <button type="submit" class="btn w-100 py-2 rounded-pill fw-bold shadow-sm mb-3"
+                            style="background: var(--brand-gradient); color: white; font-size: 1rem; border: none;">
+                        <i class="bi bi-check2-circle me-1"></i> HOÀN TẤT ĐĂNG KÝ
+                    </button>
+                    
+                    <div class="text-center pt-2 border-top">
+                        <span class="text-muted small">Đã có tài khoản? </span>
+                        <a href="{% url 'login' %}" class="small fw-bold text-decoration-none" style="color: var(--brand-primary);">
+                            Đăng nhập tại đây <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}

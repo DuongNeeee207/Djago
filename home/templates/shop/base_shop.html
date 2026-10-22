@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FreshMart - Rau Củ Quả Tươi Sạch Mỗi Ngày{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        /* =============================================
+           FRESHMART SHOP - RAU CỦ QUẢ TƯƠI SẠCH
+        ============================================= */
+        :root {
+            --brand-primary: #16a34a;
+            --brand-primary-dark: #15803d;
+            --brand-primary-light: #4ade80;
+            --brand-gradient: linear-gradient(135deg, #16a34a 0%, #059669 50%, #0d9488 100%);
+            --brand-gradient-warm: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+            --surface-bg: #f0fdf4;
+            --surface-card: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--surface-bg);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            margin: 0;
+        }
+
+        /* ---- NAVBAR ---- */
+        .shop-navbar {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(226,232,240,0.6);
+            position: sticky; top: 0; z-index: 1040;
+            transition: box-shadow 0.3s ease;
+        }
+        .shop-navbar.scrolled {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        .navbar-brand-logo {
+            width: 38px; height: 38px;
+            background: var(--brand-gradient);
+            border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            color: white; font-size: 18px;
+            box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+            flex-shrink: 0;
+        }
+        .navbar-brand-text {
+            font-weight: 900; font-size: 1.1rem;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+        .navbar-brand-badge {
+            font-size: 9px; font-weight: 700;
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #166534; border-radius: 20px;
+            padding: 2px 8px;
+        }
+
+        .shop-nav-link {
+            font-weight: 600; font-size: 0.875rem;
+            color: var(--text-secondary);
+            padding: 8px 16px !important;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .shop-nav-link:hover {
+            color: var(--brand-primary);
+            background: rgba(22,163,74,0.06);
+        }
+        .shop-nav-link.active {
+            color: var(--brand-primary);
+            background: rgba(22,163,74,0.1);
+        }
+
+        /* Cart badge */
+        .cart-btn {
+            position: relative;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-weight: 600; font-size: 0.85rem;
+            border: 1.5px solid var(--border-color);
+            color: var(--text-primary);
+            background: white;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .cart-btn:hover {
+            border-color: var(--brand-primary);
+            color: var(--brand-primary);
+            box-shadow: 0 4px 12px rgba(22,163,74,0.12);
+            text-decoration: none;
+        }
+        .cart-badge {
+            position: absolute; top: -6px; right: -6px;
+            min-width: 20px; height: 20px;
+            background: var(--danger); color: white;
+            border-radius: 50%; font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid white;
+        }
+
+        .auth-btn {
+            padding: 8px 20px; border-radius: 50px;
+            font-weight: 600; font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .auth-btn-primary {
+            background: var(--brand-gradient);
+            border: none; color: white;
+            box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+        }
+        .auth-btn-primary:hover {
+            opacity: 0.9; color: white;
+            box-shadow: 0 6px 18px rgba(22,163,74,0.4);
+            transform: translateY(-1px);
+        }
+        .auth-btn-outline {
+            border: 1.5px solid var(--border-color);
+            color: var(--text-primary); background: white;
+        }
+        .auth-btn-outline:hover {
+            border-color: var(--brand-primary);
+            color: var(--brand-primary);
+        }
+
+        /* User dropdown */
+        .user-chip {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 5px 14px 5px 5px;
+            border-radius: 50px;
+            border: 1.5px solid var(--border-color);
+            background: white;
+            text-decoration: none; color: var(--text-primary);
+            font-size: 0.85rem; font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .user-chip:hover { border-color: var(--brand-primary); color: var(--brand-primary); text-decoration: none; }
+        .user-avatar-sm {
+            width: 30px; height: 30px;
+            background: var(--brand-gradient);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 12px;
+        }
+
+        /* ---- HERO BANNER ---- */
+        .hero-banner {
+            background: var(--brand-gradient);
+            position: relative; overflow: hidden;
+            border-radius: 20px; padding: 48px 40px;
+            color: white;
+        }
+        .hero-banner::before {
+            content: '';
+            position: absolute; top: -60%; right: -20%;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .hero-banner::after {
+            content: '';
+            position: absolute; bottom: -40%; left: 20%;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            padding: 6px 16px; border-radius: 50px;
+            font-size: 0.78rem; font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        .hero-title {
+            font-size: 2rem; font-weight: 900;
+            line-height: 1.2; margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        .hero-sub {
+            font-size: 0.95rem; opacity: 0.8;
+            max-width: 550px; line-height: 1.6;
+            margin-bottom: 28px;
+        }
+        .hero-search {
+            display: flex; gap: 8px;
+            max-width: 520px;
+        }
+        .hero-search input {
+            flex: 1; border: none; border-radius: 14px;
+            padding: 14px 20px; font-size: 0.9rem;
+            background: rgba(255,255,255,0.95);
+            color: var(--text-primary);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        .hero-search input::placeholder { color: var(--text-muted); }
+        .hero-search input:focus { outline: none; background: white; }
+        .hero-search button {
+            padding: 14px 24px; border: none;
+            border-radius: 14px; font-weight: 700;
+            background: rgba(0,0,0,0.25); color: white;
+            cursor: pointer; transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .hero-search button:hover { background: rgba(0,0,0,0.35); }
+
+        /* ---- PRODUCT CARDS ---- */
+        .product-card-shop {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.25s cubic-bezier(.4,0,.2,1);
+            display: flex; flex-direction: column;
+            height: 100%;
+        }
+        .product-card-shop:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+            border-color: #86efac;
+        }
+
+        .product-card-header {
+            padding: 16px 16px 0;
+            display: flex; justify-content: space-between;
+            align-items: flex-start;
+        }
+        .sku-tag {
+            font-size: 0.68rem; font-family: 'JetBrains Mono', monospace;
+            background: var(--border-light); color: var(--text-muted);
+            padding: 2px 8px; border-radius: 6px;
+            letter-spacing: 0.3px;
+        }
+        .grade-badge {
+            font-size: 0.68rem; font-weight: 700;
+            padding: 3px 10px; border-radius: 20px;
+        }
+        .grade-zin  { background: #d1fae5; color: #065f46; }
+        .grade-lk1  { background: #dbeafe; color: #1e40af; }
+        .grade-oem  { background: #fef9c3; color: #78350f; }
+        .grade-dlc  { background: #f3e8ff; color: #6b21a8; }
+
+        .product-card-body {
+            padding: 12px 16px; flex: 1;
+        }
+        .product-name {
+            font-size: 0.9rem; font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+        .product-name a {
+            color: inherit; text-decoration: none;
+            transition: color 0.15s;
+        }
+        .product-name a:hover { color: var(--brand-primary); }
+
+        .product-category {
+            font-size: 0.75rem; color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .models-list {
+            display: flex; flex-wrap: wrap; gap: 4px;
+            margin-bottom: 0;
+        }
+        .model-tag {
+            font-size: 0.65rem; font-weight: 600;
+            padding: 2px 8px; border-radius: 6px;
+            background: #dcfce7; color: #166534;
+        }
+        .model-tag-more {
+            background: var(--border-light); color: var(--text-muted);
+        }
+
+        .product-card-footer {
+            padding: 0 16px 16px;
+            margin-top: auto;
+        }
+        .price-divider {
+            border-top: 1px solid var(--border-light);
+            padding-top: 12px; margin-top: 8px;
+        }
+        .price-label {
+            font-size: 0.68rem; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        .price-value {
+            font-size: 1.25rem; font-weight: 800;
+            color: var(--brand-primary);
+        }
+        .stock-badge {
+            font-size: 0.68rem; font-weight: 600;
+            padding: 3px 10px; border-radius: 20px;
+        }
+        .stock-available { background: #d1fae5; color: #065f46; }
+        .stock-low { background: #fef9c3; color: #78350f; }
+
+        .btn-add-cart {
+            width: 100%; padding: 10px;
+            border-radius: 12px; font-weight: 700;
+            font-size: 0.82rem;
+            border: 1.5px solid var(--brand-primary);
+            color: var(--brand-primary);
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+        .btn-add-cart:hover {
+            background: var(--brand-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(22,163,74,0.25);
+        }
+        .btn-buy-now {
+            width: 100%; padding: 10px;
+            border-radius: 12px; font-weight: 700;
+            font-size: 0.82rem;
+            border: none;
+            background: var(--brand-gradient);
+            color: white;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+        }
+        .btn-buy-now:hover {
+            opacity: 0.9;
+            box-shadow: 0 6px 18px rgba(22,163,74,0.4);
+            transform: translateY(-1px);
+        }
+
+        /* ---- FILTER BAR ---- */
+        .filter-bar {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px 20px;
+        }
+        .filter-bar .form-select {
+            border-radius: 10px;
+            border-color: var(--border-color);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* ---- PAGE SECTION CARDS ---- */
+        .shop-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+
+        /* ---- STATUS TIMELINE ---- */
+        .status-timeline {
+            display: flex; gap: 0; margin: 24px 0;
+        }
+        .timeline-step {
+            flex: 1; text-align: center;
+            position: relative; padding-top: 36px;
+        }
+        .timeline-step::before {
+            content: '';
+            position: absolute; top: 14px;
+            left: 0; right: 0; height: 3px;
+            background: var(--border-color);
+        }
+        .timeline-step:first-child::before { left: 50%; }
+        .timeline-step:last-child::before { right: 50%; }
+        .timeline-step.active::before { background: var(--brand-primary); }
+        .timeline-step.active + .timeline-step::before { background: linear-gradient(90deg, var(--brand-primary), var(--border-color)); }
+        .timeline-dot {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+            position: absolute; top: 1px;
+            left: 50%; transform: translateX(-50%);
+            font-size: 12px; color: var(--text-muted);
+            z-index: 2;
+        }
+        .timeline-step.active .timeline-dot {
+            background: var(--brand-gradient);
+            color: white;
+            box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+        }
+        .timeline-label {
+            font-size: 0.7rem; font-weight: 600;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .timeline-step.active .timeline-label {
+            color: var(--brand-primary); font-weight: 700;
+        }
+
+        /* ---- FOOTER ---- */
+        .shop-footer {
+            background: var(--text-primary);
+            color: rgba(255,255,255,0.5);
+            padding: 32px 0 24px;
+            margin-top: 64px;
+            font-size: 0.82rem;
+        }
+        .shop-footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
+        .shop-footer a:hover { color: white; }
+
+        /* ---- TRUST BADGES ---- */
+        .trust-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .trust-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 20px;
+            background: white; border: 1px solid var(--border-color);
+            border-radius: 14px;
+            transition: all 0.2s ease;
+        }
+        .trust-item:hover {
+            border-color: #86efac;
+            box-shadow: 0 4px 12px rgba(22,163,74,0.06);
+        }
+        .trust-icon {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .trust-title { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); }
+        .trust-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+
+        /* ---- ANIMATIONS ---- */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .anim-in { animation: fadeUp 0.4s ease both; }
+        .anim-d1 { animation-delay: 0.05s; }
+        .anim-d2 { animation-delay: 0.1s; }
+        .anim-d3 { animation-delay: 0.15s; }
+
+        /* ---- RESPONSIVE ---- */
+        @media (max-width: 767.98px) {
+            .hero-banner { padding: 32px 24px; border-radius: 16px; }
+            .hero-title { font-size: 1.5rem; }
+            .hero-search { flex-direction: column; }
+            .hero-search button { width: 100%; }
+        }
+
+        /* ---- SCROLLBAR ---- */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: var(--border-light); }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+
+        /* Badge compat with base */
+        .badge-zin { background: #d1fae5; color: #065f46; }
+        .badge-lk1 { background: #dbeafe; color: #1e40af; }
+        .badge-oem { background: #fef9c3; color: #78350f; }
+        .badge-dlc { background: #f3e8ff; color: #6b21a8; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="shop-navbar" id="shopNavbar">
+    <div class="container-fluid px-3 px-lg-4">
+        <div class="d-flex align-items-center justify-content-between py-2">
+            <!-- Left: Brand + Nav -->
+            <div class="d-flex align-items-center gap-3">
+                <a href="{% url 'home' %}" class="d-flex align-items-center gap-2 text-decoration-none">
+                    <div class="navbar-brand-logo">
+                        <i class="bi bi-basket2-fill"></i>
+                    </div>
+                    <div class="d-none d-sm-block">
+                        <div class="navbar-brand-text">FRESHMART</div>
+                        <span class="navbar-brand-badge">RAU CỦ QUẢ TƯƠI SẠCH</span>
+                    </div>
+                </a>
+
+                <div class="d-none d-lg-flex align-items-center gap-1 ms-3">
+                    <a href="{% url 'home' %}" class="shop-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                        <i class="bi bi-grid-1x2 me-1"></i> Mua sắm
+                    </a>
+                    <a href="{% url 'compatibility_search' %}" class="shop-nav-link {% if request.resolver_match.url_name == 'compatibility_search' %}active{% endif %}">
+                        <i class="bi bi-search me-1"></i> Tìm theo xuất xứ
+                    </a>
+                    {% if request.user.is_authenticated and not is_admin %}
+                    <a href="{% url 'my_orders' %}" class="shop-nav-link {% if 'my_order' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-box2 me-1"></i> Đơn mua của tôi
+                    </a>
+                    {% endif %}
+                    {% if is_admin %}
+                    <a href="{% url 'admin_dashboard' %}" class="shop-nav-link" style="color:#ef4444;background:rgba(239,68,68,0.06);">
+                        <i class="bi bi-speedometer2 me-1"></i> Quản Trị
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right: Cart + Auth -->
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'cart_view' %}" class="cart-btn">
+                    <i class="bi bi-bag"></i>
+                    <span class="d-none d-sm-inline">Giỏ hàng</span>
+                    {% if cart_total_items > 0 %}
+                    <span class="cart-badge">{{ cart_total_items }}</span>
+                    {% endif %}
+                </a>
+
+                {% if request.user.is_authenticated %}
+                <div class="dropdown">
+                    <a href="#" class="user-chip dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="true">
+                        <div class="user-avatar-sm">{{ request.user.username|first|upper }}</div>
+                        <span class="d-none d-sm-inline">{{ request.user.username }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2" style="min-width: 200px;">
+                        <li class="px-3 py-2 border-bottom">
+                            <div class="fw-bold small">{{ request.user.username }}</div>
+                            {% if is_admin %}
+                            <span class="badge" style="background:#fee2e2;color:#dc2626;font-size:9px;">Quản trị viên</span>
+                            {% else %}
+                            <span class="badge" style="background:#dcfce7;color:#166534;font-size:9px;">Khách hàng</span>
+                            {% endif %}
+                        </li>
+                        {% if not is_admin %}
+                        <li><a class="dropdown-item py-2" href="{% url 'my_orders' %}"><i class="bi bi-box2 me-2"></i> Đơn mua của tôi</a></li>
+                        {% endif %}
+                        {% if is_admin %}
+                        <li><a class="dropdown-item py-2" href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2 me-2"></i> Trang quản trị</a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item py-2 text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+                {% else %}
+                <a href="{% url 'login' %}" class="auth-btn auth-btn-outline">Đăng nhập</a>
+                <a href="{% url 'signup' %}" class="auth-btn auth-btn-primary d-none d-sm-inline-block">Đăng ký</a>
+                {% endif %}
+
+                <!-- Mobile menu toggle -->
+                <button class="btn d-lg-none ms-1 p-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Mobile Offcanvas -->
+<div class="offcanvas offcanvas-end d-lg-none" tabindex="-1" id="mobileNav">
+    <div class="offcanvas-header border-bottom">
+        <h6 class="offcanvas-title fw-bold">Menu</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="d-flex flex-column gap-1">
+            <a href="{% url 'home' %}" class="shop-nav-link">
+                <i class="bi bi-grid-1x2 me-2"></i> Mua sắm
+            </a>
+            <a href="{% url 'compatibility_search' %}" class="shop-nav-link">
+                <i class="bi bi-search me-2"></i> Tìm theo xuất xứ
+            </a>
+            {% if request.user.is_authenticated and not is_admin %}
+            <a href="{% url 'my_orders' %}" class="shop-nav-link">
+                <i class="bi bi-box2 me-2"></i> Đơn mua của tôi
+            </a>
+            {% endif %}
+            {% if is_admin %}
+            <a href="{% url 'admin_dashboard' %}" class="shop-nav-link text-danger">
+                <i class="bi bi-speedometer2 me-2"></i> Trang Quản Trị
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- MAIN -->
+<main class="container-fluid px-3 px-lg-4 py-4">
+    <!-- Alert messages -->
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show"
+             role="alert" style="border-radius:14px;border:none;font-size:.875rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill me-2" style="color:#10b981;"></i>{% endif %}
+            {% if message.tags == 'error' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>{% endif %}
+            {% if message.tags == 'warning' %}<i class="bi bi-exclamation-circle-fill me-2"></i>{% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<!-- FOOTER -->
+<footer class="shop-footer">
+    <div class="container text-center">
+        <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+            <div class="navbar-brand-logo" style="width:28px;height:28px;font-size:14px;border-radius:8px;">
+                <i class="bi bi-basket2-fill"></i>
+            </div>
+            <span style="color:rgba(255,255,255,0.8);font-weight:700;">FRESHMART</span>
+        </div>
+        <span>Hệ thống Bán lẻ Rau Củ Quả Tươi Sạch &bull; Chất lượng & Uy tín &bull; Django Framework</span>
+    </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Navbar shadow on scroll
+    window.addEventListener('scroll', () => {
+        document.getElementById('shopNavbar')?.classList.toggle('scrolled', window.scrollY > 10);
+    });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

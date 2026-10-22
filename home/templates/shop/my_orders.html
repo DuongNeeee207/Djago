@@ -1,0 +1,108 @@
+{% extends 'shop/base_shop.html' %}
+{% load humanize %}
+
+{% block title %}Đơn Hàng Của Tôi - FreshMart{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4 anim-in">
+            <div class="d-flex align-items-center gap-2">
+                <span style="width:36px;height:36px;background:#dcfce7;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-box2-heart" style="color:#16a34a;font-size:16px;"></i>
+                </span>
+                <div>
+                    <h4 class="fw-bold mb-0" style="color:var(--text-primary);">Đơn Mua Của Tôi</h4>
+                    <p class="mb-0" style="font-size:.78rem;color:var(--text-muted);">Theo dõi tiến độ giao hàng và lịch sử mua nông sản tươi</p>
+                </div>
+            </div>
+            <a href="{% url 'home' %}" class="btn-buy-now" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;text-decoration:none;font-size:.82rem;">
+                <i class="bi bi-plus-lg"></i> Mua thêm
+            </a>
+        </div>
+
+        <div class="shop-card overflow-hidden anim-in anim-d1">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr style="background:#f8f9fc;">
+                            <th style="padding:14px 20px;font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border:none;">Mã đơn</th>
+                            <th style="padding:14px 16px;font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border:none;">Thời gian</th>
+                            <th style="padding:14px 16px;font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border:none;">Sản phẩm đã mua</th>
+                            <th style="padding:14px 16px;font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border:none;" class="text-end">Tổng tiền</th>
+                            <th style="padding:14px 16px;font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border:none;" class="text-center">Trạng thái</th>
+                            <th style="padding:14px 16px;font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border:none;" class="text-center">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr style="border-bottom:1px solid var(--border-light);">
+                            <td style="padding:16px 20px;">
+                                <a href="{% url 'my_order_detail' order.id %}" style="font-weight:700;color:var(--brand-primary);font-family:monospace;text-decoration:none;font-size:.85rem;">
+                                    {{ order.order_code }}
+                                </a>
+                            </td>
+                            <td style="padding:16px;">
+                                <div style="font-size:.85rem;color:var(--text-primary);">{{ order.created_at|date:"d/m/Y" }}</div>
+                                <small style="color:var(--text-muted);">{{ order.created_at|date:"H:i" }}</small>
+                            </td>
+                            <td style="padding:16px;">
+                                <div style="font-size:.78rem;">
+                                    {% for item in order.items.all %}
+                                    <div style="color:var(--text-secondary);">&bull; {{ item.product.name }} <span style="color:var(--text-muted);">(SL: {{ item.quantity }})</span></div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td class="text-end" style="padding:16px;font-weight:700;font-size:.95rem;color:var(--text-primary);">
+                                {{ order.total_amount|intcomma }} đ
+                            </td>
+                            <td class="text-center" style="padding:16px;">
+                                {% if order.status == 'PENDING' %}
+                                    <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:600;background:#fef9c3;color:#854d0e;">
+                                        <span style="width:6px;height:6px;border-radius:50%;background:#eab308;"></span> Chờ xác nhận
+                                    </span>
+                                {% elif order.status == 'CONFIRMED' %}
+                                    <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:600;background:#dbeafe;color:#1e40af;">
+                                        <span style="width:6px;height:6px;border-radius:50%;background:#3b82f6;"></span> Đã duyệt
+                                    </span>
+                                {% elif order.status == 'SHIPPING' %}
+                                    <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:600;background:#ede9fe;color:#5b21b6;">
+                                        <span style="width:6px;height:6px;border-radius:50%;background:#7c3aed;"></span> Đang giao
+                                    </span>
+                                {% elif order.status == 'COMPLETED' %}
+                                    <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:600;background:#dcfce7;color:#166534;">
+                                        <span style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></span> Đã nhận hàng
+                                    </span>
+                                {% else %}
+                                    <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:600;background:#fee2e2;color:#991b1b;">
+                                        <span style="width:6px;height:6px;border-radius:50%;background:#ef4444;"></span> Đã hủy
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center" style="padding:16px;">
+                                <a href="{% url 'my_order_detail' order.id %}" style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:10px;background:#dcfce7;color:#166534;text-decoration:none;font-weight:600;font-size:.78rem;transition:all .2s ease;">
+                                    Xem đơn
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div style="width:60px;height:60px;background:var(--border-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                                    <i class="bi bi-basket2" style="font-size:1.5rem;color:var(--text-muted);"></i>
+                                </div>
+                                <div class="fw-bold mb-1" style="color:var(--text-primary);">Bạn chưa có đơn đặt mua nào</div>
+                                <div style="color:var(--text-muted);font-size:.85rem;margin-bottom:16px;">Hãy khám phá thực phẩm tươi sạch ngay hôm nay!</div>
+                                <a href="{% url 'home' %}" class="btn-buy-now" style="display:inline-block;padding:10px 24px;text-decoration:none;font-size:.85rem;">
+                                    Khám phá sản phẩm
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

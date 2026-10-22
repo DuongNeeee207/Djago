@@ -1,0 +1,200 @@
+{% extends 'inventory/base.html' %}
+{% load humanize %}
+
+{% block title %}Tổng Quan Kho Linh Kiện{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Bảng điều khiển & Thống kê</h4>
+        <p class="text-muted small mb-0">Tình hình bán lẻ và tồn kho linh kiện ngày hôm nay</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if total_sku == 0 and request.user.profile.role == 'ADMIN' %}
+        <a href="{% url 'seed_sample_data' %}" class="btn btn-warning btn-sm d-flex align-items-center gap-1 shadow-sm">
+            <i class="bi bi-magic"></i> Nạp dữ liệu mẫu thực tế
+        </a>
+        {% endif %}
+
+        <a href="{% url 'receipt_create' %}" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-box-arrow-in-down"></i> Nhập kho
+        </a>
+        <a href="{% url 'pos_page' %}" class="btn btn-pos btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-cart-plus"></i> Bán lẻ tại quầy
+        </a>
+    </div>
+</div>
+
+<!-- 4 Key Stat Cards -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: Doanh thu hôm nay -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card card-stat p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold">Doanh thu hôm nay</span>
+                    <h4 class="fw-bold text-primary mb-0 mt-2">{{ today_revenue|intcomma }} đ</h4>
+                    <span class="text-muted small">{{ today_order_count }} đơn hàng</span>
+                </div>
+                <div class="p-3 bg-primary-subtle text-primary rounded-circle">
+                    <i class="bi bi-currency-dollar fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Lãi gộp hôm nay -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card card-stat p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold">Lãi gộp hôm nay</span>
+                    <h4 class="fw-bold text-success mb-0 mt-2">{{ today_profit|intcomma }} đ</h4>
+                    <span class="text-muted small">Sau khi trừ giá vốn</span>
+                </div>
+                <div class="p-3 bg-success-subtle text-success rounded-circle">
+                    <i class="bi bi-graph-up-arrow fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Giá trị kho hàng -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card card-stat p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold">Giá trị vốn trong kho</span>
+                    <h4 class="fw-bold text-dark mb-0 mt-2">{{ total_inventory_cost|intcomma }} đ</h4>
+                    <span class="text-muted small">Giá bán dự kiến: {{ total_inventory_retail|intcomma }} đ</span>
+                </div>
+                <div class="p-3 bg-info-subtle text-info rounded-circle">
+                    <i class="bi bi-safe fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Cảnh báo tồn kho -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card card-stat p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold">Cảnh báo tồn kho</span>
+                    <h4 class="fw-bold text-danger mb-0 mt-2">{{ low_stock_count }} <span class="fs-6 text-muted fw-normal">sắp hết</span> / {{ out_of_stock_count }} <span class="fs-6 text-muted fw-normal">hết</span></h4>
+                    <a href="{% url 'product_list' %}?stock=low" class="text-danger small text-decoration-none">Xem danh sách cần nhập &rarr;</a>
+                </div>
+                <div class="p-3 bg-danger-subtle text-danger rounded-circle">
+                    <i class="bi bi-exclamation-octagon fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Cảnh báo linh kiện sắp hết hàng -->
+    <div class="col-12 col-lg-7">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-danger d-flex align-items-center gap-2">
+                    <i class="bi bi-bell-fill"></i> Linh kiện sắp hết hàng trong kho
+                </h6>
+                <a href="{% url 'receipt_create' %}" class="btn btn-outline-danger btn-sm">Tạo phiếu nhập</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã SKU</th>
+                                <th>Tên linh kiện</th>
+                                <th>Kệ/Khay</th>
+                                <th class="text-center">Tồn kho</th>
+                                <th class="text-end">Giá vốn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in low_stock_products %}
+                            <tr>
+                                <td><span class="badge bg-light text-dark border">{{ p.sku }}</span></td>
+                                <td>
+                                    <div class="fw-semibold text-truncate" style="max-width: 250px;">{{ p.name }}</div>
+                                    <small class="text-muted">{{ p.category.name }}</small>
+                                </td>
+                                <td><span class="badge bg-secondary-subtle text-secondary">{{ p.location|default:"Chưa gán" }}</span></td>
+                                <td class="text-center">
+                                    <span class="badge bg-danger fs-6">{{ p.stock_quantity }}</span>
+                                    <small class="text-muted d-block" style="font-size: 11px;">Min: {{ p.min_stock_alert }}</small>
+                                </td>
+                                <td class="text-end fw-semibold text-muted">{{ p.cost_price|intcomma }} đ</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    <i class="bi bi-check2-circle text-success fs-3 d-block mb-1"></i>
+                                    Kho hàng đang ở trạng thái an toàn, không có mã nào dưới ngưỡng tối thiểu.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Đơn bán gần đây & Top bán chạy -->
+    <div class="col-12 col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history text-primary"></i> Đơn bán lẻ vừa thực hiện
+                </h6>
+                <a href="{% url 'order_list' %}" class="small text-decoration-none">Xem tất cả</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for order in recent_orders %}
+                    <a href="{% url 'order_detail' order.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+                        <div>
+                            <div class="fw-bold text-dark">{{ order.order_code }}</div>
+                            <small class="text-muted">{{ order.customer_name }} &bull; {{ order.created_at|date:"H:i d/m" }}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-primary">{{ order.total_amount|intcomma }} đ</div>
+                            <small class="text-success">+{{ order.profit|intcomma }} đ</small>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="p-4 text-center text-muted">Chưa có đơn bán lẻ nào hôm nay.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-trophy-fill text-warning"></i> Top linh kiện bán chạy
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for item in top_selling %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                        <div>
+                            <span class="badge bg-light text-dark border me-1">{{ item.product__sku }}</span>
+                            <span class="fw-medium text-dark">{{ item.product__name }}</span>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ item.total_sold }} cái</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted py-3">Chưa có số liệu bán hàng.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

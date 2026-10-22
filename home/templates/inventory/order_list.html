@@ -1,0 +1,96 @@
+{% extends 'inventory/base.html' %}
+{% load humanize %}
+
+{% block title %}Lịch Sử Đơn Bán Lẻ{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Lịch Sử Đơn Hàng Bán Lẻ</h4>
+        <p class="text-muted small mb-0">Theo dõi doanh thu, tổng giá vốn và lợi nhuận gộp thực tế của từng đơn xuất kho</p>
+    </div>
+    <div class="d-flex gap-3 text-end">
+        <div class="p-2 px-3 bg-white border rounded-3 shadow-sm">
+            <small class="text-muted d-block">Tổng doanh thu bán lẻ</small>
+            <span class="fw-bold text-primary fs-5">{{ total_revenue|intcomma }} đ</span>
+        </div>
+        {% if is_admin_or_manager %}
+        <div class="p-2 px-3 bg-white border rounded-3 shadow-sm">
+            <small class="text-muted d-block">Tổng lãi gộp</small>
+            <span class="fw-bold text-success fs-5">+{{ total_profit|intcomma }} đ</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã hóa đơn</th>
+                        <th>Thời gian</th>
+                        <th>Khách hàng</th>
+                        <th>Số lượng món</th>
+                        <th class="text-end">Tổng tiền bán</th>
+                        {% if is_admin_or_manager %}
+                        <th class="text-end">Giá vốn</th>
+                        <th class="text-end">Lãi gộp</th>
+                        {% endif %}
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'order_detail' order.id %}" class="fw-bold text-primary font-monospace text-decoration-none">
+                                {{ order.order_code }}
+                            </a>
+                        </td>
+                        <td>
+                            <div class="text-dark">{{ order.created_at|date:"d/m/Y" }}</div>
+                            <small class="text-muted">{{ order.created_at|date:"H:i" }}</small>
+                        </td>
+                        <td>
+                            <span class="fw-medium text-dark">{{ order.customer_name }}</span>
+                            {% if order.customer_phone %}
+                            <small class="text-muted d-block">{{ order.customer_phone }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ order.items.count }} mặt hàng</span>
+                        </td>
+                        <td class="text-end fw-bold text-dark">
+                            {{ order.total_amount|intcomma }} đ
+                        </td>
+                        {% if is_admin_or_manager %}
+                        <td class="text-end text-muted">
+                            {{ order.total_cost|intcomma }} đ
+                        </td>
+                        <td class="text-end fw-bold text-success">
+                            +{{ order.profit|intcomma }} đ
+                        </td>
+                        {% endif %}
+                        <td class="text-center">
+                            <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-primary btn-sm py-1 px-2" title="Xem chi tiết & in hóa đơn">
+                                <i class="bi bi-printer"></i> Chi tiết
+                            </a>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-receipt-cutoff fs-2 d-block mb-2 text-secondary"></i>
+                            Chưa có đơn hàng bán lẻ nào trong hệ thống.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

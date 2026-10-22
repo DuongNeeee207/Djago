@@ -1,0 +1,189 @@
+{% extends 'shop/base_shop.html' %}
+{% load humanize %}
+
+{% block title %}FreshMart - Rau Củ Quả Tươi Sạch Giá Tốt Mỗi Ngày{% endblock %}
+
+{% block content %}
+<!-- HERO BANNER -->
+<div class="hero-banner mb-4 anim-in">
+    <div class="position-relative" style="z-index:2;">
+        <div class="hero-badge">🥬 RAU CỦ QUẢ TƯƠI MỖI NGÀY</div>
+        <h1 class="hero-title">Tươi Ngon Từ Nông Trại<br>Đến Tay Bạn</h1>
+        <p class="hero-sub">
+            Đầy đủ rau xanh, trái cây, củ quả từ Đà Lạt, miền Tây, hàng nhập khẩu. 100% tươi sạch, giao hàng tận nhà mỗi ngày!
+        </p>
+
+        <form method="get" class="hero-search">
+            <input type="text" name="q" value="{{ query }}" placeholder="Tìm rau, củ, quả (VD: Cà chua, Xoài, Khoai lang...)">
+            <button type="submit"><i class="bi bi-search me-1"></i> Tìm Kiếm</button>
+        </form>
+    </div>
+</div>
+
+<!-- TRUST BADGES -->
+<div class="trust-bar mb-4 anim-in anim-d1">
+    <div class="trust-item">
+        <div class="trust-icon" style="background:#d1fae5;color:#065f46;">
+            <i class="bi bi-shield-check-fill"></i>
+        </div>
+        <div>
+            <div class="trust-title">An toàn thực phẩm</div>
+            <div class="trust-sub">Nguồn gốc rõ ràng, đạt chuẩn VietGAP</div>
+        </div>
+    </div>
+    <div class="trust-item">
+        <div class="trust-icon" style="background:#dbeafe;color:#1e40af;">
+            <i class="bi bi-truck"></i>
+        </div>
+        <div>
+            <div class="trust-title">Giao hàng tận nhà</div>
+            <div class="trust-sub">Giao nhanh trong ngày, đóng gói cẩn thận</div>
+        </div>
+    </div>
+    <div class="trust-item">
+        <div class="trust-icon" style="background:#fef9c3;color:#92400e;">
+            <i class="bi bi-sun-fill"></i>
+        </div>
+        <div>
+            <div class="trust-title">Tươi mỗi ngày</div>
+            <div class="trust-sub">Nhập hàng mới mỗi sáng sớm</div>
+        </div>
+    </div>
+    <div class="trust-item">
+        <div class="trust-icon" style="background:#dcfce7;color:#166534;">
+            <i class="bi bi-patch-check-fill"></i>
+        </div>
+        <div>
+            <div class="trust-title">Cam kết chất lượng</div>
+            <div class="trust-sub">Hữu cơ, Sạch, Nhập khẩu chính ngạch</div>
+        </div>
+    </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar mb-4 anim-in anim-d2">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-6 col-md-3">
+            <select name="category" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Tất cả danh mục --</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-3">
+            <select name="brand" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Xuất xứ --</option>
+                {% for b in brands %}
+                <option value="{{ b.id }}" {% if selected_brand == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="input-group">
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Gõ từ khóa cần tìm..." style="border-radius:10px 0 0 10px;">
+                <button type="submit" class="btn" style="background:var(--brand-primary);color:white;border-radius:0 10px 10px 0;font-weight:600;">
+                    <i class="bi bi-search"></i> Lọc
+                </button>
+            </div>
+        </div>
+        <div class="col-12 col-md-2 text-end">
+            {% if query or selected_category or selected_brand %}
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary w-100" style="border-radius:10px;font-weight:600;font-size:.85rem;">Xóa bộ lọc</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- PRODUCTS HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-3 anim-in anim-d2">
+    <h5 class="fw-bold mb-0 d-flex align-items-center gap-2" style="color:var(--text-primary);">
+        <span style="width:32px;height:32px;background:#dcfce7;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;">
+            <i class="bi bi-basket" style="color:#16a34a;font-size:15px;"></i>
+        </span>
+        Sản Phẩm Đang Bán
+    </h5>
+    <span style="font-size:.82rem;color:var(--text-muted);font-weight:600;">{{ products|length }} sản phẩm</span>
+</div>
+
+<!-- PRODUCT GRID -->
+<div class="row g-3">
+    {% for p in products %}
+    <div class="col-12 col-sm-6 col-md-4 col-xl-3 anim-in" style="animation-delay: {{ forloop.counter0|divisibleby:4|yesno:'0.05,0.1,0.15,0.2' }}s;">
+        <div class="product-card-shop">
+            <div class="product-card-header">
+                <span class="sku-tag">{{ p.sku }}</span>
+                {% if p.grade == 'ZIN' %}
+                    <span class="grade-badge grade-zin">Hữu cơ</span>
+                {% elif p.grade == 'LK1' %}
+                    <span class="grade-badge grade-lk1">Sạch VietGAP</span>
+                {% elif p.grade == 'OEM' %}
+                    <span class="grade-badge grade-oem">Thường</span>
+                {% else %}
+                    <span class="grade-badge grade-dlc">Nhập khẩu</span>
+                {% endif %}
+            </div>
+
+            <div class="product-card-body">
+                <div class="product-name">
+                    <a href="{% url 'product_detail' p.id %}">{{ p.name }}</a>
+                </div>
+                <div class="product-category">
+                    <i class="bi bi-tag-fill me-1"></i>{{ p.category.name }}
+                </div>
+
+                <div class="models-list">
+                    {% for m in p.compatible_models.all|slice:":3" %}
+                    <span class="model-tag">{{ m.name }}</span>
+                    {% endfor %}
+                    {% if p.compatible_models.count > 3 %}
+                    <span class="model-tag model-tag-more">+{{ p.compatible_models.count|add:"-3" }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="product-card-footer">
+                <div class="price-divider">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <div class="price-label">Giá bán lẻ</div>
+                            <div class="price-value">{{ p.retail_price|intcomma }} đ</div>
+                        </div>
+                        <span class="stock-badge stock-available">
+                            <i class="bi bi-check-circle-fill me-1"></i>Còn hàng
+                        </span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <form method="post" action="{% url 'cart_add' p.id %}" class="flex-fill">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn-add-cart">
+                                <i class="bi bi-bag-plus me-1"></i> Thêm giỏ
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'cart_add' p.id %}" class="flex-fill">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="buy_now" value="true">
+                            <button type="submit" class="btn-buy-now">
+                                <i class="bi bi-lightning-charge-fill me-1"></i> Mua ngay
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="shop-card p-5 text-center">
+            <div style="width:60px;height:60px;background:var(--border-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                <i class="bi bi-search fs-3" style="color:var(--text-muted);"></i>
+            </div>
+            <h5 class="fw-bold" style="color:var(--text-primary);">Không tìm thấy sản phẩm nào phù hợp</h5>
+            <p class="small" style="color:var(--text-muted);">Vui lòng thử chọn danh mục hoặc từ khóa tìm kiếm khác.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

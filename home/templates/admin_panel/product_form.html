@@ -1,0 +1,115 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}{{ action }} Nông Sản - Admin Panel{% endblock %}
+{% block page_title %}{{ action }} Nông Sản / Rau Củ Quả{% endblock %}
+{% block page_breadcrumb %}Admin Panel &rsaquo; Kho Rau Củ Quả &rsaquo; {{ action }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-basket2 text-success me-2"></i>{{ action }} Sản Phẩm Rau Củ Quả
+                </h5>
+                <a href="{% url 'admin_product_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Mã SKU <span class="text-danger">*</span></label>
+                            <input type="text" name="sku" value="{{ product.sku|default:'' }}" class="form-control text-uppercase" placeholder="VD: CA-CHUA-DL" {% if product %}readonly{% else %}required{% endif %}>
+                            <small class="text-muted" style="font-size: 11px;">Mã duy nhất trong kho</small>
+                        </div>
+                        <div class="col-12 col-md-8">
+                            <label class="form-label fw-semibold">Tên sản phẩm <span class="text-danger">*</span></label>
+                            <input type="text" name="name" value="{{ product.name|default:'' }}" class="form-control" placeholder="VD: Cà chua beef Đà Lạt (kg)" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                            <select name="category" class="form-select" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Phân loại tiêu chuẩn / chất lượng</label>
+                            <select name="grade" class="form-select">
+                                <option value="ZIN" {% if product.grade == 'ZIN' %}selected{% endif %}>Hữu cơ (Organic)</option>
+                                <option value="LK1" {% if product.grade == 'LK1' or not product %}selected{% endif %}>Sạch (VietGAP)</option>
+                                <option value="OEM" {% if product.grade == 'OEM' %}selected{% endif %}>Thường / Tiêu chuẩn chợ</option>
+                                <option value="DLC" {% if product.grade == 'DLC' %}selected{% endif %}>Nhập khẩu (Import chính ngạch)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Xuất xứ / Giống loại -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold d-flex justify-content-between">
+                            <span>Xuất xứ / Giống loại áp dụng</span>
+                            <span class="text-muted small">Giữ phím Ctrl để chọn nhiều</span>
+                        </label>
+                        <select name="compatible_models" class="form-select" multiple size="5" style="border-radius: 8px;">
+                            {% for m in phone_models %}
+                            <option value="{{ m.id }}" {% if m.id in selected_model_ids %}selected{% endif %}>
+                                {{ m.brand.name }} - {{ m.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Giá vốn bình quân (VNĐ)</label>
+                            <div class="input-group">
+                                <input type="number" name="cost_price" value="{{ product.cost_price|default:0 }}" class="form-control" min="0" step="1000">
+                                <span class="input-group-text">đ</span>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Giá bán lẻ niêm yết (VNĐ) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" name="retail_price" value="{{ product.retail_price|default:0 }}" class="form-control text-success fw-bold" min="0" step="1000" required>
+                                <span class="input-group-text text-success fw-bold">đ</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Số lượng tồn kho (phần/kg/bó)</label>
+                            <input type="number" name="stock_quantity" value="{{ product.stock_quantity|default:0 }}" class="form-control" min="0">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Cảnh báo tồn tối thiểu</label>
+                            <input type="number" name="min_stock_alert" value="{{ product.min_stock_alert|default:3 }}" class="form-control" min="0">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Vị trí kệ / quầy</label>
+                            <input type="text" name="location" value="{{ product.location|default:'' }}" class="form-control" placeholder="VD: Quầy A1 - Rau củ">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'admin_product_list' %}" class="btn btn-light px-4">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-admin-primary px-4">
+                            <i class="bi bi-save me-1"></i> Lưu sản phẩm
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

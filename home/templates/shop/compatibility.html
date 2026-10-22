@@ -1,0 +1,227 @@
+{% extends 'shop/base_shop.html' %}
+{% load humanize %}
+
+{% block title %}Tìm Sản Phẩm Theo Xuất Xứ - FreshMart{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-4">
+    <div class="col-12 col-lg-10">
+        <!-- HEADER -->
+        <div class="text-center mb-4 anim-in">
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2" 
+                 style="background: rgba(22,163,74,0.08); color: var(--brand-primary); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.5px;">
+                <i class="bi bi-geo-alt-fill"></i> TÌM THEO XUẤT XỨ & GIỐNG LOẠI
+            </div>
+            <h2 class="fw-bold mb-2" style="color: var(--text-primary); font-size: 1.85rem;">
+                Tìm Sản Phẩm Theo Nguồn Gốc
+            </h2>
+            <p class="text-muted mx-auto" style="max-width: 620px; font-size: 0.95rem;">
+                Chọn vùng miền và giống loại cụ thể để tìm đúng sản phẩm rau củ quả bạn muốn, đảm bảo nguồn gốc rõ ràng.
+            </p>
+        </div>
+
+        <!-- INTERACTIVE SELECTOR CARD -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 anim-in anim-d1" 
+             style="background: white; border: 1px solid var(--border-color) !important;">
+            
+            <form method="get" class="row g-3 align-items-end" id="compatFilterForm">
+                <!-- 1. XUẤT XỨ -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-bold small text-secondary d-flex align-items-center gap-1">
+                        <i class="bi bi-geo-alt-fill text-success"></i> 1. Chọn Xuất Xứ
+                    </label>
+                    <select name="brand" class="form-select py-2 rounded-3" 
+                            style="border: 1.5px solid var(--border-color); font-weight: 500;" 
+                            onchange="this.form.submit()">
+                        <option value="">-- Tất cả xuất xứ --</option>
+                        {% for b in brands %}
+                        <option value="{{ b.id }}" {% if selected_brand == b.id %}selected{% endif %}>
+                            {{ b.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- 2. GIỐNG LOẠI -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-bold small text-secondary d-flex align-items-center gap-1">
+                        <i class="bi bi-flower2 text-success"></i> 2. Chọn Giống Loại
+                    </label>
+                    <select name="model" class="form-select py-2 rounded-3" 
+                            style="border: 1.5px solid var(--border-color); font-weight: 500;" 
+                            onchange="this.form.submit()">
+                        <option value="">-- Chọn giống loại --</option>
+                        {% for m in models_list %}
+                        <option value="{{ m.id }}" {% if selected_model == m.id %}selected{% endif %}>
+                            {{ m.brand.name }} - {{ m.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- 3. TÌM KIẾM NHANH -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-bold small text-secondary d-flex align-items-center gap-1">
+                        <i class="bi bi-search text-success"></i> Hoặc gõ tên sản phẩm
+                    </label>
+                    <div class="input-group">
+                        <input type="text" name="keyword" value="{{ keyword }}" class="form-control py-2" 
+                               placeholder="VD: Xoài cát, Cà chua..." 
+                               style="border: 1.5px solid var(--border-color); border-right: none; border-radius: 10px 0 0 10px;">
+                        <button type="submit" class="btn" 
+                                style="background: var(--brand-gradient); color: white; font-weight: 600; border-radius: 0 10px 10px 0; padding: 0 18px;">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- XUẤT XỨ PHỔ BIẾN PILLS -->
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top">
+                <span class="text-muted small fw-semibold"><i class="bi bi-lightning-charge"></i> Xuất xứ phổ biến:</span>
+                {% for b in brands %}
+                <a href="?brand={{ b.id }}" 
+                   class="badge text-decoration-none px-3 py-2 rounded-pill transition-all"
+                   style="{% if selected_brand == b.id %}background: var(--brand-primary); color: white;{% else %}background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;{% endif %} font-weight: 600; font-size: 0.8rem;">
+                    {{ b.name }}
+                </a>
+                {% endfor %}
+                {% if selected_brand or selected_model or keyword %}
+                <a href="{% url 'compatibility_search' %}" class="btn btn-link btn-sm text-danger text-decoration-none ms-auto p-0 small fw-bold">
+                    <i class="bi bi-x-circle me-1"></i> Xóa lọc
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- THÔNG TIN GIỐNG LOẠI ĐANG CHỌN -->
+        {% if current_model %}
+        <div class="alert border-0 rounded-4 p-3 d-flex align-items-center justify-content-between mb-4 shadow-sm anim-in anim-d2"
+             style="background: linear-gradient(135deg, rgba(22,163,74,0.08) 0%, rgba(5,150,105,0.08) 100%); border-left: 4px solid var(--brand-primary) !important;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                     style="width: 44px; height: 44px; background: var(--brand-gradient); color: white; font-size: 1.25rem;">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+                <div>
+                    <div class="fw-bold" style="color: var(--text-primary); font-size: 1.05rem;">
+                        Đang lọc sản phẩm: {{ current_model.brand.name }} - {{ current_model.name }}
+                    </div>
+                    <div class="text-muted small">Cam kết tươi sạch, nguồn gốc rõ ràng 100%</div>
+                </div>
+            </div>
+            <span class="badge rounded-pill px-3 py-2" style="background: var(--brand-primary); font-size: 0.85rem;">
+                {{ products|length }} sản phẩm
+            </span>
+        </div>
+        {% elif keyword %}
+        <div class="alert alert-light border rounded-4 p-3 d-flex align-items-center justify-content-between mb-4 shadow-sm">
+            <div>
+                <i class="bi bi-info-circle text-success me-2"></i> Kết quả tìm kiếm theo từ khóa: <strong>"{{ keyword }}"</strong>
+            </div>
+            <span class="badge bg-secondary rounded-pill">{{ products|length }} kết quả</span>
+        </div>
+        {% endif %}
+
+        <!-- DANH SÁCH SẢN PHẨM -->
+        {% if products %}
+        <div class="row g-3">
+            {% for p in products %}
+            <div class="col-12 col-sm-6 col-md-4 col-xl-3 anim-in">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-3 d-flex flex-column justify-content-between transition-all"
+                     style="background: white; border: 1px solid var(--border-color) !important;">
+                    
+                    <div>
+                        <!-- SKU & GRADE -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge font-monospace" style="background: #f1f5f9; color: #64748b; font-size: 11px;">
+                                {{ p.sku }}
+                            </span>
+                            {% if p.grade == 'ZIN' %}
+                                <span class="badge" style="background: #d1fae5; color: #065f46; font-size: 11px;">Hữu cơ</span>
+                            {% elif p.grade == 'LK1' %}
+                                <span class="badge" style="background: #dbeafe; color: #1e40af; font-size: 11px;">Sạch VietGAP</span>
+                            {% elif p.grade == 'OEM' %}
+                                <span class="badge" style="background: #fef9c3; color: #854d0e; font-size: 11px;">Thường</span>
+                            {% else %}
+                                <span class="badge" style="background: #f3e8ff; color: #6b21a8; font-size: 11px;">Nhập khẩu</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- ICON -->
+                        <a href="{% url 'product_detail' p.id %}" class="d-block text-center py-3 my-1 rounded-3" 
+                           style="background: #f0fdf4; text-decoration: none;">
+                            {% if 'Rau' in p.category.name %}
+                                <i class="bi bi-flower1 text-success" style="font-size: 2.8rem;"></i>
+                            {% elif 'Trái' in p.category.name or 'Quả' in p.category.name %}
+                                <i class="bi bi-apple text-danger" style="font-size: 2.8rem;"></i>
+                            {% elif 'Củ' in p.category.name or 'Khoai' in p.category.name %}
+                                <i class="bi bi-egg-fill text-warning" style="font-size: 2.8rem;"></i>
+                            {% elif 'Nấm' in p.category.name %}
+                                <i class="bi bi-cloud-fill text-info" style="font-size: 2.8rem;"></i>
+                            {% else %}
+                                <i class="bi bi-basket text-success" style="font-size: 2.8rem;"></i>
+                            {% endif %}
+                        </a>
+
+                        <!-- TÊN SẢN PHẨM -->
+                        <h6 class="fw-bold mb-1 mt-2">
+                            <a href="{% url 'product_detail' p.id %}" class="text-dark text-decoration-none line-clamp-2" 
+                               style="font-size: 0.92rem; line-height: 1.35;">
+                                {{ p.name }}
+                            </a>
+                        </h6>
+                        <small class="text-muted d-block mb-2">
+                            <i class="bi bi-bookmark text-success"></i> {{ p.category.name }}
+                        </small>
+                    </div>
+
+                    <!-- GIÁ & THÊM GIỎ HÀNG -->
+                    <div class="border-top pt-2 mt-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <div class="text-muted" style="font-size: 11px;">Giá bán lẻ:</div>
+                                <div class="fw-bold" style="color: var(--brand-primary); font-size: 1.15rem;">
+                                    {{ p.retail_price|intcomma }} đ
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill" style="background: #ecfdf5; color: #059669; font-size: 11px; border: 1px solid #a7f3d0;">
+                                <i class="bi bi-check-circle-fill"></i> Sẵn hàng
+                            </span>
+                        </div>
+
+                        <form method="post" action="{% url 'cart_add' p.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn w-100 py-2 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2"
+                                    style="background: #f0fdf4; color: var(--brand-primary); border: 1.5px solid rgba(22,163,74,0.2); font-size: 0.85rem; transition: all 0.2s ease;">
+                                <i class="bi bi-cart-plus"></i> Thêm Vào Giỏ
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4" style="background: white;">
+            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-3"
+                 style="width: 70px; height: 70px; background: #f1f5f9; color: #94a3b8; font-size: 2rem;">
+                <i class="bi bi-search"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">Chưa tìm thấy sản phẩm phù hợp</h5>
+            <p class="text-muted small mx-auto mb-3" style="max-width: 450px;">
+                Vui lòng chọn xuất xứ hoặc giống loại từ danh sách bên trên, hoặc thử tìm kiếm bằng từ khóa ngắn gọn hơn.
+            </p>
+            <div>
+                <a href="{% url 'home' %}" class="btn btn-outline-success rounded-pill px-4 btn-sm fw-bold">
+                    <i class="bi bi-arrow-left me-1"></i> Quay về cửa hàng
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

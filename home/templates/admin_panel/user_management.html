@@ -1,0 +1,82 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Quản Lý Tài Khoản - Admin Panel{% endblock %}
+{% block page_title %}Tài Khoản & Phân Quyền{% endblock %}
+{% block page_breadcrumb %}Admin Panel &rsaquo; Hệ thống &rsaquo; Phân quyền{% endblock %}
+
+{% block content %}
+<div class="panel-card animate-in">
+    <div class="card-header-custom">
+        <h6>
+            <span class="icon-header" style="background:#ede9fe;color:#6d28d9;"><i class="bi bi-people-fill"></i></span>
+            Phân quyền tài khoản — Chỉ gồm 2 vai trò: Quản trị viên (Admin) và Khách hàng (User)
+        </h6>
+        <span class="badge" style="background:#f1f5f9;color:#475569;font-size:.78rem;font-weight:600;padding:6px 12px;border-radius:20px;">
+            Tổng {{ users|length }} tài khoản
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table w-100">
+            <thead>
+                <tr>
+                    <th style="width: 70px;">ID</th>
+                    <th style="min-width: 170px;">Tài khoản</th>
+                    <th style="min-width: 150px;">Họ tên</th>
+                    <th>Liên hệ & Địa chỉ</th>
+                    <th style="width: 180px;">Vai trò hiện tại</th>
+                    <th class="text-center" style="width: 260px;">Chuyển đổi vai trò</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td><span class="text-muted font-monospace" style="font-size:.8rem;">#{{ u.id }}</span></td>
+                    <td>
+                        <div class="fw-bold text-dark" style="font-size:.875rem;">{{ u.username }}</div>
+                        <div class="text-muted" style="font-size:.74rem;">Ngày tạo: {{ u.date_joined|date:"d/m/Y" }}</div>
+                    </td>
+                    <td>
+                        <span class="fw-semibold text-secondary" style="font-size:.85rem;">{{ u.first_name|default:"Chưa cập nhật" }}</span>
+                    </td>
+                    <td>
+                        <div style="font-size:.82rem;"><i class="bi bi-telephone text-muted me-1"></i>{{ u.profile.phone|default:"Chưa có SĐT" }}</div>
+                        <small class="text-muted text-truncate d-block" style="max-width: 250px; font-size:.74rem;">
+                            <i class="bi bi-geo-alt me-1"></i>{{ u.profile.address|default:"Chưa có địa chỉ" }}
+                        </small>
+                    </td>
+                    <td>
+                        {% if u.profile.role == 'ADMIN' or u.is_superuser %}
+                            <span class="badge" style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;padding:6px 12px;border-radius:20px;font-size:.78rem;">
+                                <i class="bi bi-shield-lock-fill me-1"></i> Quản trị viên (Admin)
+                            </span>
+                        {% else %}
+                            <span class="badge" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;padding:6px 12px;border-radius:20px;font-size:.78rem;">
+                                <i class="bi bi-person-fill me-1"></i> Khách hàng (User)
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <form method="post" action="{% url 'admin_user_management' %}" class="d-flex gap-2 justify-content-center align-items-center">
+                            {% csrf_token %}
+                            <input type="hidden" name="user_id" value="{{ u.id }}">
+                            <select name="role" class="form-select form-select-sm" style="width: 160px; font-size:.8rem; border-radius:8px;">
+                                <option value="USER" {% if u.profile.role == 'USER' and not u.is_superuser %}selected{% endif %}>Khách hàng (User)</option>
+                                <option value="ADMIN" {% if u.profile.role == 'ADMIN' or u.is_superuser %}selected{% endif %}>Quản trị viên (Admin)</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-admin-primary" style="padding:4px 12px; font-size:.78rem;" title="Cập nhật quyền">
+                                <i class="bi bi-check2"></i> Lưu
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">Chưa có người dùng nào.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

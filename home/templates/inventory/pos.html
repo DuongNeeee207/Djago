@@ -1,0 +1,305 @@
+{% extends 'inventory/base.html' %}
+{% load humanize %}
+
+{% block title %}Bán Lẻ Tại Quầy (POS){% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <!-- CỘT TRÁI: TÌM KIẾM & CHỌN LINH KIỆN -->
+    <div class="col-12 col-lg-7">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-grid-fill text-primary me-2"></i>Chọn Linh Kiện Xuất Bán
+                    </h5>
+                    <span class="text-muted small">Chỉ hiện sản phẩm còn tồn kho</span>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="posSearch" class="form-control border-start-0" placeholder="Gõ SKU, tên linh kiện, đời máy (VD: Pin 11, MH iPhone, S21...)" autofocus>
+                    <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">Xóa</button>
+                </div>
+            </div>
+
+            <div class="card-body p-3" style="max-height: 680px; overflow-y: auto;">
+                <div class="row g-2" id="productList">
+                    {% for p in products %}
+                    <div class="col-12 col-sm-6 product-card-item" 
+                         data-sku="{{ p.sku|lower }}" 
+                         data-name="{{ p.name|lower }}" 
+                         data-category="{{ p.category.name|lower }}"
+                         data-models="{% for m in p.compatible_models.all %}{{ m.name|lower }} {% endfor %}">
+                        <div class="border rounded-3 p-3 bg-white h-100 d-flex flex-column justify-content-between shadow-sm position-relative">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <span class="badge bg-secondary font-monospace">{{ p.sku }}</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                        Tồn: {{ p.stock_quantity }}
+                                    </span>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1 text-truncate" title="{{ p.name }}">{{ p.name }}</h6>
+                                <div class="text-muted small mb-2 text-truncate">
+                                    <i class="bi bi-geo-alt"></i> {{ p.location|default:"Chưa xếp kệ" }}
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="fw-bold text-primary fs-6">{{ p.retail_price|intcomma }} đ</span>
+                                <button type="button" class="btn btn-primary btn-sm px-3 rounded-pill"
+                                        onclick="addToCart({{ p.id }}, '{{ p.sku }}', '{{ p.name|escapejs }}', {{ p.retail_price }}, {{ p.stock_quantity }})">
+                                    <i class="bi bi-plus-lg"></i> Thêm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-5 text-muted">
+                        <i class="bi bi-box2 fs-1 d-block mb-2 text-secondary"></i>
+                        Kho hiện không có linh kiện nào còn hàng để xuất bán.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CỘT PHẢI: GIỎ HÀNG & THANH TOÁN -->
+    <div class="col-12 col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-receipt text-primary me-2"></i>Đơn Bán Lẻ
+                </h5>
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearCart()">
+                    <i class="bi bi-trash3"></i> Xóa giỏ
+                </button>
+            </div>
+
+            <form method="post" action="{% url 'pos_checkout' %}" id="posForm" onsubmit="return validateCheckout()">
+                {% csrf_token %}
+                <div class="card-body p-3">
+                    <!-- Danh sách linh kiện đã chọn -->
+                    <div id="cartItemsContainer" style="min-height: 200px; max-height: 320px; overflow-y: auto;" class="mb-3">
+                        <div id="emptyCartMessage" class="text-center py-5 text-muted">
+                            <i class="bi bi-cart3 fs-1 d-block mb-2 text-secondary"></i>
+                            Chưa có linh kiện nào trong đơn hàng.<br>Chọn linh kiện bên trái để thêm vào.
+                        </div>
+                        <ul class="list-group list-group-flush" id="cartList"></ul>
+                    </div>
+
+                    <!-- Thông tin khách hàng -->
+                    <div class="bg-light p-3 rounded-3 mb-3 border">
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-muted mb-1">Khách hàng</label>
+                                <input type="text" name="customer_name" class="form-control form-control-sm" value="Khách lẻ">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-muted mb-1">Số điện thoại</label>
+                                <input type="text" name="customer_phone" class="form-control form-control-sm" placeholder="VD: 0988...">
+                            </div>
+                        </div>
+                        <div>
+                            <input type="text" name="note" class="form-control form-control-sm" placeholder="Ghi chú đơn hàng (nếu có)">
+                        </div>
+                    </div>
+
+                    <!-- Tính tiền & Thanh toán -->
+                    <div class="border-top pt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fs-6 fw-semibold text-muted">Tổng cộng thanh toán:</span>
+                            <span class="fs-4 fw-bold text-primary" id="cartTotalText">0 đ</span>
+                        </div>
+                        
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="small text-muted mb-1">Tiền khách đưa (VNĐ):</label>
+                                <input type="number" id="cashGiven" class="form-control" placeholder="Nhập số tiền..." oninput="calculateChange()">
+                            </div>
+                            <div class="col-6">
+                                <label class="small text-muted mb-1">Tiền trả lại khách:</label>
+                                <div class="form-control bg-light fw-bold text-success text-end" id="changeAmountText">0 đ</div>
+                            </div>
+                        </div>
+
+                        <!-- Các nút tiền nhanh -->
+                        <div class="d-flex gap-1 mb-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="setCash(100000)">100k</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="setCash(200000)">200k</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="setCash(500000)">500k</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="setExactCash()">Vừa đủ</button>
+                        </div>
+
+                        <button type="submit" class="btn btn-pos w-100 py-3 rounded-3 fs-5 shadow" id="btnCheckout" disabled>
+                            <i class="bi bi-check2-circle me-1"></i> THANH TOÁN & IN HÓA ĐƠN
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let cart = []; // Mảng chứa các linh kiện trong giỏ
+
+    // Tìm kiếm tức thời trên cột sản phẩm
+    document.getElementById('posSearch').addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase().trim();
+        const items = document.querySelectorAll('.product-card-item');
+        items.forEach(item => {
+            const sku = item.getAttribute('data-sku');
+            const name = item.getAttribute('data-name');
+            const category = item.getAttribute('data-category');
+            const models = item.getAttribute('data-models');
+
+            if (sku.includes(term) || name.includes(term) || category.includes(term) || models.includes(term)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+
+    function clearSearch() {
+        const input = document.getElementById('posSearch');
+        input.value = '';
+        input.dispatchEvent(new Event('input'));
+        input.focus();
+    }
+
+    function addToCart(id, sku, name, price, maxStock) {
+        const existing = cart.find(item => item.id === id);
+        if (existing) {
+            if (existing.qty + 1 > maxStock) {
+                alert(`Linh kiện này chỉ còn ${maxStock} cái trong kho!`);
+                return;
+            }
+            existing.qty += 1;
+        } else {
+            cart.push({ id, sku, name, price, qty: 1, maxStock });
+        }
+        renderCart();
+    }
+
+    function updateQty(id, delta) {
+        const item = cart.find(i => i.id === id);
+        if (!item) return;
+
+        const newQty = item.qty + delta;
+        if (newQty <= 0) {
+            cart = cart.filter(i => i.id !== id);
+        } else if (newQty > item.maxStock) {
+            alert(`Tồn kho tối đa chỉ còn ${item.maxStock} cái!`);
+            return;
+        } else {
+            item.qty = newQty;
+        }
+        renderCart();
+    }
+
+    function removeFromCart(id) {
+        cart = cart.filter(i => i.id !== id);
+        renderCart();
+    }
+
+    function clearCart() {
+        if (cart.length > 0 && confirm('Bạn có chắc chắn muốn xóa toàn bộ giỏ hàng?')) {
+            cart = [];
+            renderCart();
+        }
+    }
+
+    function formatNumber(num) {
+        return new Intl.NumberFormat('vi-VN').format(num);
+    }
+
+    function renderCart() {
+        const container = document.getElementById('cartList');
+        const emptyMsg = document.getElementById('emptyCartMessage');
+        const btnCheckout = document.getElementById('btnCheckout');
+        
+        container.innerHTML = '';
+
+        if (cart.length === 0) {
+            emptyMsg.style.display = 'block';
+            document.getElementById('cartTotalText').innerText = '0 đ';
+            btnCheckout.disabled = true;
+            calculateChange();
+            return;
+        }
+
+        emptyMsg.style.display = 'none';
+        btnCheckout.disabled = false;
+
+        let total = 0;
+
+        cart.forEach(item => {
+            const subtotal = item.price * item.qty;
+            total += subtotal;
+
+            const li = document.createElement('li');
+            li.className = 'list-group-item px-0 py-2 border-bottom';
+            li.innerHTML = `
+                <input type="hidden" name="cart_product_ids[]" value="${item.id}">
+                <input type="hidden" name="cart_quantities[]" value="${item.qty}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="max-width: 65%;">
+                        <div class="fw-semibold text-dark text-truncate">${item.name}</div>
+                        <small class="text-muted font-monospace">${item.sku} &bull; ${formatNumber(item.price)} đ</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold text-primary">${formatNumber(subtotal)} đ</div>
+                        <div class="btn-group btn-group-sm mt-1" role="group">
+                            <button type="button" class="btn btn-outline-secondary py-0 px-2" onclick="updateQty(${item.id}, -1)">-</button>
+                            <span class="btn btn-light py-0 px-2 fw-bold" style="cursor: default;">${item.qty}</span>
+                            <button type="button" class="btn btn-outline-secondary py-0 px-2" onclick="updateQty(${item.id}, 1)">+</button>
+                            <button type="button" class="btn btn-outline-danger py-0 px-2" onclick="removeFromCart(${item.id})"><i class="bi bi-x"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(li);
+        });
+
+        document.getElementById('cartTotalText').innerText = formatNumber(total) + ' đ';
+        calculateChange();
+    }
+
+    function calculateChange() {
+        let total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        let cash = parseFloat(document.getElementById('cashGiven').value) || 0;
+        let change = cash - total;
+        
+        const changeElem = document.getElementById('changeAmountText');
+        if (change >= 0) {
+            changeElem.className = 'form-control bg-light fw-bold text-success text-end';
+            changeElem.innerText = formatNumber(change) + ' đ';
+        } else {
+            changeElem.className = 'form-control bg-light fw-bold text-danger text-end';
+            changeElem.innerText = 'Thiếu ' + formatNumber(Math.abs(change)) + ' đ';
+        }
+    }
+
+    function setCash(val) {
+        document.getElementById('cashGiven').value = val;
+        calculateChange();
+    }
+
+    function setExactCash() {
+        let total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        document.getElementById('cashGiven').value = total;
+        calculateChange();
+    }
+
+    function validateCheckout() {
+        if (cart.length === 0) {
+            alert('Giỏ hàng trống!');
+            return false;
+        }
+        return true;
+    }
+</script>
+{% endblock %}

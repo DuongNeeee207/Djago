@@ -1,0 +1,190 @@
+{% extends 'inventory/base.html' %}
+{% load humanize %}
+
+{% block title %}Tạo Phiếu Nhập Kho{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-box-arrow-in-down text-primary me-2"></i>Tạo Phiếu Nhập Kho Linh Kiện
+                </h5>
+                <a href="{% url 'receipt_list' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+            </div>
+            
+            <div class="card-body p-4">
+                <!-- Chú thích nghiệp vụ giá vốn -->
+                <div class="alert alert-primary d-flex align-items-start gap-2 mb-4">
+                    <i class="bi bi-info-circle-fill fs-5 mt-1"></i>
+                    <div>
+                        <strong>Cơ chế tự động cập nhật Giá vốn bình quân:</strong>
+                        <div class="small">Khi lưu phiếu nhập, hệ thống sẽ tự động tăng số lượng tồn kho và cập nhật giá vốn theo công thức: 
+                        <code class="bg-white px-2 py-1 rounded text-primary">Giá vốn mới = (Tồn cũ × Vốn cũ + SL nhập × Giá nhập) / (Tồn cũ + SL nhập)</code>.
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post" id="receiptForm" onsubmit="return validateReceipt()">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Nhà cung cấp</label>
+                            <select name="supplier" class="form-select">
+                                <option value="">-- Nhập lẻ / Nguồn tự do --</option>
+                                {% for s in suppliers %}
+                                <option value="{{ s.id }}">{{ s.name }} {% if s.phone %}({{ s.phone }}){% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Ghi chú phiếu nhập</label>
+                            <input type="text" name="note" class="form-control" placeholder="VD: Nhập đợt hàng tháng 10 từ đại lý An Sương">
+                        </div>
+                    </div>
+
+                    <!-- Bảng chi tiết mặt hàng nhập -->
+                    <div class="table-responsive mb-3">
+                        <table class="table table-bordered align-middle" id="itemsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="min-width: 320px;">Linh kiện nhập <span class="text-danger">*</span></th>
+                                    <th style="width: 140px;" class="text-center">SL Nhập <span class="text-danger">*</span></th>
+                                    <th style="width: 180px;" class="text-end">Đơn giá nhập (VNĐ) <span class="text-danger">*</span></th>
+                                    <th style="width: 180px;" class="text-end">Thành tiền</th>
+                                    <th style="width: 50px;" class="text-center">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsBody">
+                                <!-- Hàng mẫu mặc định -->
+                                <tr class="item-row">
+                                    <td>
+                                        <select name="product_ids[]" class="form-select product-select" required onchange="onProductSelect(this)">
+                                            <option value="">-- Chọn linh kiện trong kho --</option>
+                                            {% for p in products %}
+                                            <option value="{{ p.id }}" data-cost="{{ p.cost_price }}" data-stock="{{ p.stock_quantity }}">
+                                                [{{ p.sku }}] {{ p.name }} (Tồn: {{ p.stock_quantity }}, Vốn cũ: {{ p.cost_price|intcomma }} đ)
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="quantities[]" class="form-control text-center qty-input" min="1" value="1" required oninput="calculateRow(this)">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="import_prices[]" class="form-control text-end price-input" min="0" step="1000" placeholder="0" required oninput="calculateRow(this)">
+                                    </td>
+                                    <td class="text-end fw-bold text-primary subtotal-cell">
+                                        0 đ
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeRow(this)">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addRow()">
+                            <i class="bi bi-plus-lg me-1"></i> Thêm dòng linh kiện
+                        </button>
+                        <div class="fs-5">
+                            <span class="text-muted">Tổng tiền phiếu nhập: </span>
+                            <span class="fw-bold text-primary fs-4" id="grandTotalText">0 đ</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a href="{% url 'receipt_list' %}" class="btn btn-light px-4">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
+                            <i class="bi bi-check2-circle me-1"></i> Lưu & Cập Nhật Tồn Kho
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function formatNumber(num) {
+        return new Intl.NumberFormat('vi-VN').format(num);
+    }
+
+    function onProductSelect(selectElement) {
+        const row = selectElement.closest('tr');
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const defaultCost = selectedOption.getAttribute('data-cost');
+        const priceInput = row.querySelector('.price-input');
+        
+        if (defaultCost && (!priceInput.value || priceInput.value == 0)) {
+            priceInput.value = defaultCost;
+        }
+        calculateRow(priceInput);
+    }
+
+    function calculateRow(element) {
+        const row = element.closest('tr');
+        const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+        const price = parseFloat(row.querySelector('.price-input').value) || 0;
+        const subtotal = qty * price;
+
+        row.querySelector('.subtotal-cell').innerText = formatNumber(subtotal) + ' đ';
+        calculateGrandTotal();
+    }
+
+    function calculateGrandTotal() {
+        let total = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+            const price = parseFloat(row.querySelector('.price-input').value) || 0;
+            total += (qty * price);
+        });
+        document.getElementById('grandTotalText').innerText = formatNumber(total) + ' đ';
+    }
+
+    function addRow() {
+        const tbody = document.getElementById('itemsBody');
+        const firstRow = tbody.querySelector('.item-row');
+        const newRow = firstRow.cloneNode(true);
+
+        // Reset giá trị trên hàng mới
+        newRow.querySelector('.product-select').selectedIndex = 0;
+        newRow.querySelector('.qty-input').value = 1;
+        newRow.querySelector('.price-input').value = '';
+        newRow.querySelector('.subtotal-cell').innerText = '0 đ';
+
+        tbody.appendChild(newRow);
+    }
+
+    function removeRow(btn) {
+        const rows = document.querySelectorAll('.item-row');
+        if (rows.length <= 1) {
+            alert('Phiếu nhập cần có ít nhất 1 dòng linh kiện!');
+            return;
+        }
+        btn.closest('tr').remove();
+        calculateGrandTotal();
+    }
+
+    function validateReceipt() {
+        let valid = true;
+        document.querySelectorAll('.product-select').forEach(sel => {
+            if (!sel.value) {
+                alert('Vui lòng chọn linh kiện cho tất cả các dòng!');
+                valid = false;
+            }
+        });
+        return valid;
+    }
+</script>
+{% endblock %}

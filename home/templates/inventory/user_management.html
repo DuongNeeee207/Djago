@@ -1,0 +1,78 @@
+{% extends 'inventory/base.html' %}
+
+{% block title %}Quản Lý Phân Quyền Nhân Sự{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Quản Lý Tài Khoản & Phân Quyền</h4>
+        <p class="text-muted small mb-0">Chức năng chỉ dành cho Chủ cửa hàng (Admin) để thiết lập vai trò cho nhân viên</p>
+    </div>
+    <a href="{% url 'signup' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
+        <i class="bi bi-person-plus-fill"></i> Thêm tài khoản mới
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>Tên đăng nhập</th>
+                        <th>Họ tên</th>
+                        <th>Số điện thoại</th>
+                        <th>Vai trò hiện tại</th>
+                        <th>Trạng thái</th>
+                        <th class="text-center" style="width: 250px;">Cập nhật vai trò</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td><span class="text-muted font-monospace">#{{ u.id }}</span></td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ u.username }}</div>
+                            <small class="text-muted">Tạo: {{ u.date_joined|date:"d/m/Y" }}</small>
+                        </td>
+                        <td>{{ u.first_name|default:"--" }}</td>
+                        <td>{{ u.profile.phone|default:"--" }}</td>
+                        <td>
+                            {% if u.profile.role == 'ADMIN' %}
+                                <span class="badge bg-danger fs-6"><i class="bi bi-shield-fill-check me-1"></i> Chủ cửa hàng (Admin)</span>
+                            {% elif u.profile.role == 'MANAGER' %}
+                                <span class="badge bg-primary fs-6"><i class="bi bi-box-seam me-1"></i> Quản lý kho</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6"><i class="bi bi-person-badge me-1"></i> Nhân viên bán hàng</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.is_active %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Đã khóa</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <form method="post" action="{% url 'user_management' %}" class="d-flex gap-1 justify-content-center">
+                                {% csrf_token %}
+                                <input type="hidden" name="user_id" value="{{ u.id }}">
+                                <select name="role" class="form-select form-select-sm" style="width: 160px;">
+                                    <option value="STAFF" {% if u.profile.role == 'STAFF' %}selected{% endif %}>Nhân viên bán lẻ</option>
+                                    <option value="MANAGER" {% if u.profile.role == 'MANAGER' %}selected{% endif %}>Quản lý kho</option>
+                                    <option value="ADMIN" {% if u.profile.role == 'ADMIN' %}selected{% endif %}>Chủ shop (Admin)</option>
+                                </select>
+                                <button type="submit" class="btn btn-outline-primary btn-sm" title="Lưu thay đổi vai trò">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
